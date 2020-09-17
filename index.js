@@ -1,0 +1,91 @@
+var fs = require('fs');
+var path = require('path');
+var { exec } = require("child_process");
+var arg = require('arg');
+
+function parseArgumentsIntoOptions(rawArgs) {
+    var args = arg({
+        '--input': String,
+        '--output': String,
+        '-i': '--input',
+        '-o': '--output'
+    }, {
+        argv: rawArgs.slice(2),
+    });
+    return {
+        inputFolder: args['--input'] || path.resolve(__dirname, 'contracts'),
+        outputFolder: args['--output'] || path.resolve(__dirname, 'out')
+    };
+}
+
+function cleanPath(path) {
+    try {
+        fs.rmdirSync(path, { recursive: true });
+    } catch (e) {
+        console.error(e);
+    }
+    try {
+        fs.mkdirSync(path, { recursive: true });
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function runProcess(processLocation, contract, outputContract) {
+    var outputFolder = outputContract.split('\\').join('/');
+    outputFolder = outputFolder.substring(0, outputFolder.lastIndexOf('/'));
+    fs.mkdirSync(outputFolder, { recursive: true });
+    return new Promise(function(ok, ko) {
+        exec(`${processLocation} ${contract} > ${outputContract}`, (error, stdout, stderr) => {
+            if (error) {
+                return ko(error);
+            }
+            if (stderr) {
+                return ko(stderr);
+            }
+            return setTimeout(ok, 350);
+        });
+    });
+}
+
+function getContractsList(p) {
+    if(!fs.lstatSync(p).isDirectory()) {
+        return [p];
+    }
+    var contracts = [];
+    var files = fs.readdirSync(p);
+    for (var file of files) {
+        var filePath = path.resolve(p, file);
+        if (fs.lstatSync(filePath).isDirectory()) {
+            contracts.push(...getContractsList(filePath));
+        } else if (filePath.endsWith('.sol')) {
+            contracts.push(filePath);
+        }
+    }
+    return contracts;
+};
+
+module.exports = async function main(iF, oF) {
+    var wasExisting = true;
+    try {
+        var truffleConfigFile = path.resolve(__dirname, 'truffle-config.js');
+        wasExisting = fs.existsSync(truffleConfigFile);
+        var options = parseArgumentsIntoOptions(process.argv);
+        var inputFolder = iF || options.inputFolder;
+        var outputFolder = oF || options.outputFolder;
+        !wasExisting && fs.writeFileSync(truffleConfigFile, '');
+        var processLocation = path.resolve('node_modules/.bin/truffle-flattener');
+        fs.lstatSync(outputFolder).isDirectory() && cleanPath(outputFolder);
+        if(fs.lstatSync(inputFolder).isDirectory()) {
+            var contracts = getContractsList(inputFolder);
+            await Promise.all(contracts.map(it => runProcess(processLocation, it, it.split(inputFolder).join(outputFolder))));
+        } else {
+            await runProcess(processLocation, inputFolder, outputFolder);
+        }
+    } finally {
+        try {
+            !wasExisting && fs.unlinkSync(truffleConfigFile);
+        } catch(e) {
+        }
+    }
+}

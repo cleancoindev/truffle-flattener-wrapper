@@ -1,0 +1,25 @@
+{
+  "name": "truffle-flattener-wrapper",
+  "version": "0.0.1",
+  "description": "A Simple Truffle Flattener Wrapper to easily unpack complex Solidiy contract structures",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b-u-i-d-l/truffle-flattener-wrapper.git"
+  },
+  "keywords": [
+    "truffle",
+    "flattener"
+  ],
+  "author": "The DFOhub Team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/b-u-i-d-l/truffle-flattener-wrapper/issues"
+  },
+  "homepage": "https://github.com/b-u-i-d-l/truffle-flattener-wrapper#readme",
+  "devDependencies": {
+    "arg": "^4.1.3",
+    "truffle-flattener": "^1.5.0"
+  }
+}
