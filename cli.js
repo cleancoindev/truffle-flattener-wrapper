@@ -59,12 +59,12 @@ function eraseLicenses(contract, source) {
 }
 
 function isValidPath(p) {
-    return true;
     for(var exclusion of exclusionsList) {
         if(p.toLowerCase().indexOf(exclusion.toLowerCase()) !== -1) {
             return false;
         }
     }
+    return true;
 }
 
 function getContractsList(p) {
