@@ -4,6 +4,8 @@ var { exec } = require("child_process");
 var arg = require('arg');
 const parentModule = require('parent-module');
 
+var exclusionsList = ['node_modules'];
+
 function parseArgumentsIntoOptions(rawArgs) {
     var args = arg({
         '--input': String,
@@ -23,12 +25,10 @@ function cleanPath(path) {
     try {
         fs.rmdirSync(path, { recursive: true });
     } catch (e) {
-        console.error(e);
     }
     try {
         fs.mkdirSync(path, { recursive: true });
     } catch (e) {
-        console.error(e);
     }
 }
 
@@ -58,7 +58,19 @@ function eraseLicenses(contract, source) {
     fs.writeFileSync(contract, source);
 }
 
+function isValidPath(p) {
+    return true;
+    for(var exclusion of exclusionsList) {
+        if(p.toLowerCase().indexOf(exclusion.toLowerCase()) !== -1) {
+            return false;
+        }
+    }
+}
+
 function getContractsList(p) {
+    if(!isValidPath(p)) {
+        return [];
+    }
     if(!fs.lstatSync(p).isDirectory()) {
         return [p];
     }
