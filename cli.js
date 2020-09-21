@@ -36,16 +36,25 @@ function runProcess(processLocation, contract, outputContract) {
     outputFolder = outputFolder.substring(0, outputFolder.lastIndexOf('/'));
     fs.mkdirSync(outputFolder, { recursive: true });
     return new Promise(function(ok, ko) {
-        exec(`${processLocation} ${contract} > ${outputContract}`, (error, stdout, stderr) => {
+        exec(`${processLocation} ${contract}`, (error, stdout) => {
             if (error) {
                 return ko(error);
             }
-            if (stderr) {
-                return ko(stderr);
-            }
-            return setTimeout(ok, 350);
+            return ok(eraseLicenses(outputContract, `${stdout}`.trim()));
         });
     });
+}
+
+function eraseLicenses(contract, source) {
+    try {
+        var split = source.split('SPDX-License-Identifier:');
+        var firstTranche = split[0];
+        split.splice(0, 1);
+        source = firstTranche + 'SPDX-License-Identifier:' + split.join('SPDX_License_Identifier:');
+    } catch (e) {
+        console.error(e);
+    }
+    fs.writeFileSync(contract, source);
 }
 
 function getContractsList(p) {
