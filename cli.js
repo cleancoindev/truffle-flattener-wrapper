@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var { exec } = require("child_process");
 var arg = require('arg');
+const parentModule = require('parent-module');
 
 function parseArgumentsIntoOptions(rawArgs) {
     var args = arg({
@@ -77,7 +78,7 @@ function getContractsList(p) {
 module.exports = async function main(iF, oF) {
     var wasExisting = true;
     try {
-        var truffleConfigFile = path.resolve(__dirname, 'truffle-config.js');
+        var truffleConfigFile = path.resolve(iF ? path.dirname(parentModule()) : __dirname, 'truffle-config.js');
         wasExisting = fs.existsSync(truffleConfigFile);
         var options = parseArgumentsIntoOptions(process.argv);
         var inputFolder = iF || options.inputFolder;
