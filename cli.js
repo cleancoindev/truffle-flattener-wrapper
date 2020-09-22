@@ -49,11 +49,12 @@ function runProcess(processLocation, contract, outputContract) {
 function eraseLicenses(contract, source) {
     try {
         var split = source.split('SPDX-License-Identifier:');
-        var firstTranche = split[0];
-        split.splice(0, 1);
-        source = firstTranche + 'SPDX-License-Identifier:' + split.join('SPDX_License_Identifier:');
+        if(split.length > 1) {
+            var firstTranche = split[0];
+            split.splice(0, 1);
+            source = firstTranche + 'SPDX-License-Identifier:' + split.join('SPDX_License_Identifier:');
+        }
     } catch (e) {
-        console.error(e);
     }
     fs.writeFileSync(contract, source);
 }
