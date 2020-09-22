@@ -98,7 +98,7 @@ module.exports = async function main(iF, oF) {
         var outputFolder = oF || options.outputFolder;
         !wasExisting && fs.writeFileSync(truffleConfigFile, '');
         var processLocation = path.resolve('node_modules/.bin/truffle-flattener');
-        fs.lstatSync(outputFolder).isDirectory() && cleanPath(outputFolder);
+        !outputFolder.endsWith('.sol') && cleanPath(outputFolder);
         if(fs.lstatSync(inputFolder).isDirectory()) {
             var contracts = getContractsList(inputFolder);
             await Promise.all(contracts.map(it => runProcess(processLocation, it, it.split(inputFolder).join(outputFolder))));
