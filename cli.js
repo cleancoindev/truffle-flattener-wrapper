@@ -41,9 +41,13 @@ function runProcess(processLocation, contract, outputContract) {
             if (error) {
                 return ko(error);
             }
-            return ok(eraseLicenses(outputContract, `${stdout}`.trim()));
+            return ok(clean(outputContract, `${stdout}`.trim()));
         });
     });
+}
+
+function clean(contract, source) {
+    return adjustABIEncoderV2(contract, eraseLicenses(contract, source));
 }
 
 function eraseLicenses(contract, source) {
@@ -57,6 +61,21 @@ function eraseLicenses(contract, source) {
     } catch (e) {
     }
     fs.writeFileSync(contract, source);
+    return source;
+}
+
+function adjustABIEncoderV2(contract, source) {
+    try {
+        var split = source.split('pragma experimental ABIEncoderV2;');
+        if(split.length > 1) {
+            var firstTranche = split[0];
+            split.splice(0, 1);
+            source = firstTranche + 'pragma experimental ABIEncoderV2;' + split.join('//pragma experimental ABIEncoderV2;');
+        }
+    } catch (e) {
+    }
+    fs.writeFileSync(contract, source);
+    return source;
 }
 
 function isValidPath(p) {
