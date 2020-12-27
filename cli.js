@@ -107,10 +107,28 @@ function getContractsList(p) {
     return contracts;
 };
 
+function projectRoot(iF) {
+    var root = iF ? path.dirname(parentModule()) : __dirname;
+    root = root === __dirname && iF ? iF : root;
+    for(var i = 0; i < 200; i++) {
+        var package = path.resolve(root, 'package.json');
+        var packageLock = path.resolve(root, 'package-lock.json');
+        var nodeModules = path.resolve(root, 'node_modules');
+        var truffleConfig = path.resolve(root, 'truffle-config.js');
+        if(fs.existsSync(package) || 
+        fs.existsSync(packageLock) ||
+        fs.existsSync(nodeModules) ||
+        fs.existsSync(truffleConfig)) {
+            return root;
+        }
+        root = path.resolve(root, '..');
+    }
+}
+
 module.exports = async function main(iF, oF) {
     var wasExisting = true;
     try {
-        var truffleConfigFile = path.resolve(iF ? path.dirname(parentModule()) : __dirname, 'truffle-config.js');
+        var truffleConfigFile = path.resolve(projectRoot(iF), 'truffle-config.js');
         wasExisting = fs.existsSync(truffleConfigFile);
         var options = parseArgumentsIntoOptions(process.argv);
         var inputFolder = iF || options.inputFolder;
