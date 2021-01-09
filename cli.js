@@ -47,7 +47,7 @@ function runProcess(processLocation, contract, outputContract) {
 }
 
 function clean(contract, source) {
-    return adjustABIEncoderV2(contract, eraseLicenses(contract, source));
+    return adjustAbicoderV2(contract, adjustABIEncoderV2(contract, eraseLicenses(contract, source)));
 }
 
 function eraseLicenses(contract, source) {
@@ -71,6 +71,20 @@ function adjustABIEncoderV2(contract, source) {
             var firstTranche = split[0];
             split.splice(0, 1);
             source = firstTranche + 'pragma experimental ABIEncoderV2;' + split.join('//pragma experimental ABIEncoderV2;');
+        }
+    } catch (e) {
+    }
+    fs.writeFileSync(contract, source);
+    return source;
+}
+
+function adjustAbicoderV2(contract, source) {
+    try {
+        var split = source.split('pragma abicoder v2;');
+        if(split.length > 1) {
+            var firstTranche = split[0];
+            split.splice(0, 1);
+            source = firstTranche + 'pragma abicoder v2;' + split.join('//pragma abicoder v2;');
         }
     } catch (e) {
     }
